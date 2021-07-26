@@ -1,0 +1,36 @@
+title: Annotation
+type: object
+properties:
+  id:
+    type: string
+    format: uuid
+  datapoints:
+    type: number
+  labeler:
+    $ref: ./Labeler.yaml
+  type:
+    oneOf:
+      - properties:
+          name:
+            type: string
+            enum:
+              - internal
+              - outsourced
+              - crowdsourced
+              - synthetic
+              - dataProgramming
+          description:
+            type: string
+        required:
+          - name
+    type: object
+  tools:
+    type: array
+    items:
+      $ref: ./Labeling-Tool.yaml
+required:
+  - id
+  - datapoints
+  - labeler
+  - type
+description: Annotation model for each single Labeler

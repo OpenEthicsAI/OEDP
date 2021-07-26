@@ -1,0 +1,33 @@
+title: Open Ethics Data Passport
+type: object
+description: OEDP Model
+properties:
+  id:
+    type: string
+    format: uuid
+  datasets:
+    type: array
+    items:
+      $ref: ./Dataset.yaml
+  scope:
+    type: string
+  created:
+    type: string
+    format: date-time
+  product:
+    type:
+      - array
+      - string
+    format: uuid
+    items: {}
+  updated:
+    type: string
+    format: date-time
+  validUntil:
+    type: string
+    format: date-time
+required:
+  - id
+  - datasets
+  - scope
+  - created

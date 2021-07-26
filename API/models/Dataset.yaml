@@ -1,0 +1,32 @@
+title: Dataset
+type: object
+properties:
+  id:
+    type: string
+    format: uuid
+  created:
+    type: string
+    format: date-time
+  description:
+    type: string
+  version:
+    type: string
+  scope:
+    type: string
+  source:
+    type: object
+    properties:
+      description:
+        type: string
+      url:
+        $ref: ''
+    required:
+      - description
+  labeling:
+    type: array
+    items:
+      $ref: ./Annotation.yaml
+required:
+  - id
+  - created
+description: Dataset Model
