@@ -1,5 +1,7 @@
 # Open Ethics Data Passport (OEDP)
 
+[![DOI](https://zenodo.org/badge/388838903.svg)](https://zenodo.org/badge/latestdoi/388838903)
+
 ## This repository
 This repository scopes the Open Ethics Data Passport (OEDP)
 
