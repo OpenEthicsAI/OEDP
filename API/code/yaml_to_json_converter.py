@@ -3,7 +3,7 @@ import yaml
 import json
 from typing import List
 
-def convert_yaml_to_json(input_folder: str = "models", output_folder: str = "models-json") -> List[str]:
+def convert_yaml_to_json(input_folder: str = "../models", output_folder: str = "../models-json") -> List[str]:
     """
     Convert YAML files in the input folder to JSON files in the output folder.
 

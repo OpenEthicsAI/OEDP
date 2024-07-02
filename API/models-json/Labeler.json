@@ -1,0 +1,71 @@
+{
+  "title": "Labeler",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "name": {
+      "type": "string"
+    },
+    "projects": {
+      "type": "array",
+      "items": {}
+    },
+    "training": {
+      "type": "array",
+      "items": {}
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "./Labeling-Tool.yaml"
+      }
+    },
+    "contacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "anyOf": [
+              {
+                "properties": {},
+                "enum": [
+                  "email",
+                  "phone"
+                ]
+              }
+            ],
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "access": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "id",
+    "created",
+    "updated"
+  ],
+  "description": "Labeler's profile"
+}
