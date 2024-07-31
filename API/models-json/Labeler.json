@@ -28,7 +28,7 @@
     "tools": {
       "type": "array",
       "items": {
-        "$ref": "./Labeling-Tool.yaml"
+        "$ref": "./Labeling-Tool.json"
       }
     },
     "contacts": {

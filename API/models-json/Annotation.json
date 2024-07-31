@@ -10,7 +10,7 @@
       "type": "number"
     },
     "labeler": {
-      "$ref": "./Labeler.yaml"
+      "$ref": "./Labeler.json"
     },
     "type": {
       "oneOf": [

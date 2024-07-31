@@ -36,7 +36,7 @@
     "labeling": {
       "type": "array",
       "items": {
-        "$ref": "./Annotation.yaml"
+        "$ref": "./Annotation.json"
       }
     }
   },
