@@ -1,4 +1,6 @@
 {
+  "$id": "https://openethics.ai/schemas/Dataset.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Dataset",
   "type": "object",
   "properties": {
