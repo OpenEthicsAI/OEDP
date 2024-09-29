@@ -3,11 +3,12 @@
 [![DOI](https://zenodo.org/badge/388838903.svg)](https://zenodo.org/badge/latestdoi/388838903)
 
 ## This repository
-This repository scopes the Open Ethics Data Passport (OEDP)
+This repository scopes the Open Ethics Data Passport (OEDP) and stores its JSON schema.
 
 ## Contributors
 - Alice Pavaloiu
 - Nikita Lukianets
+- Abhiram Ravikumar
 
 ## Key concepts
 - Data labeler
