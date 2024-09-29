@@ -1,0 +1,30 @@
+{
+  "$id": "https://openethics.ai/schemas/Labeling-Tool.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Labeling Tool",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "url": {
+      "$ref": ""
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "description"
+  ],
+  "description": "Description of the Labeling Tool"
+}
