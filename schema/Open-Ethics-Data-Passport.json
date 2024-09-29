@@ -9,10 +9,10 @@
       "type": "string",
       "format": "uuid"
     },
-    "datasets": {
+    "models": {
       "type": "array",
       "items": {
-        "$ref": "./Dataset.json"
+        "$ref": "./Model.json"
       }
     },
     "scope": {
@@ -41,7 +41,7 @@
   },
   "required": [
     "id",
-    "datasets",
+    "models",
     "scope",
     "created"
   ]
