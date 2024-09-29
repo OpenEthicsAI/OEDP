@@ -48,7 +48,7 @@
           "description"
         ]
       },
-      "dataset": {
+      "datasets": {
         "type": "array",
         "items": {
           "$ref": "./Dataset.json"
