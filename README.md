@@ -70,7 +70,9 @@ Bring transparency to the systemic properties of the AI models by developing a D
 |     Data programming                     	|     Using scripts that programmatically label datasets                                                 	|
 
 ## Roadmap and deliverables
-1. Profile structure [JSON/XML/CSV]
-2. Profile assessment tool with identity management and labeling history [web-based]
-3. A machine-readable Data Passport [JSON]
-4. Integration into the Open Ethics Transparency Protocol https://openethics.ai/oetp/
+1. Machine-readable Data Passport [JSON Schema]
+2. Visualization for the JSON schema [web-based]
+3. Labeler Profile structure [JSON Schema]
+4. Profile assessment tool with identity management and labeling history [web-based]
+5. Profile management tool [web-based]
+6. Integration into the Open Ethics Transparency Protocol https://openethics.ai/oetp/
