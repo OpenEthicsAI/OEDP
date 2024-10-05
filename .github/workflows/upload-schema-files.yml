@@ -1,25 +1,18 @@
-name: Upload schema files via FTP
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'schema/**'
-
+on: push
+name: 🚀 Deploy website on push
 jobs:
-  upload:
+  web-deploy:
+    name: 🎉 Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
 
-      - name: Upload schema files via FTP
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USER }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          for file in schema/*; do
-            curl -u $FTP_USER:$FTP_PASSWORD ftp://$FTP_SERVER/schema/ --upload-file $file
-          done
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USER }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        protocol: ftps
+        local-dir: ./schema/
