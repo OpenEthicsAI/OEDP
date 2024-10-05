@@ -17,9 +17,9 @@ jobs:
       - name: Upload schema files via FTP
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_USERNAME: ${{ secrets.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
           for file in schema/*; do
-            curl -u $FTP_USERNAME:$FTP_PASSWORD ftp://$FTP_SERVER/schema/ --upload-file $file
+            curl -u $FTP_USER:$FTP_PASSWORD ftp://$FTP_SERVER/schema/ --upload-file $file
           done
