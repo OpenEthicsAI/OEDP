@@ -1,0 +1,25 @@
+name: Upload schema files via FTP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'schema/**'
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Upload schema files via FTP
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          for file in schema/*; do
+            curl -u $FTP_USERNAME:$FTP_PASSWORD ftp://$FTP_SERVER/schema/ --upload-file $file
+          done
