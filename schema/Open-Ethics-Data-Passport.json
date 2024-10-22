@@ -1,7 +1,7 @@
 {
   "$id": "https://openethics.ai/schemas/Open-Ethics-Data-Passport.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Open Ethics Data Passport",
+  "title": "Open Ethics Data Passport Schema",
   "type": "object",
   "description": "OEDP Model",
   "properties": {
