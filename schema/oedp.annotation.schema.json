@@ -1,5 +1,5 @@
 {
-  "$id": "https://openethics.ai/schemas/oedp.annotation.schema.json",
+  "$id": "https://openethics.ai/schema/oedp.annotation.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OEDP Dataset Annotation Schema",
   "type": "object",
@@ -13,7 +13,7 @@
       "type": "number"
     },
     "labeler": {
-      "$ref": "https://openethics.ai/schemas/oedp.labeler.schema.json"
+      "$ref": "https://openethics.ai/schema/oedp.labeler.schema.json"
     },
     "type": {
       "oneOf": [
@@ -43,7 +43,7 @@
     "tools": {
       "type": "array",
       "items": {
-        "$ref": "https://openethics.ai/schemas/oedp.labeling_tool.schema.json"
+        "$ref": "https://openethics.ai/schema/oedp.labeling_tool.schema.json"
       }
     }
   },

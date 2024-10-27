@@ -1,6 +1,6 @@
 
 {
-    "$id": "https://openethics.ai/schemas/oedp.model.schema.json",
+    "$id": "https://openethics.ai/schema/oedp.model.schema.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "OEDP AI Model Schema",
     "type": "object",
@@ -52,7 +52,7 @@
       "datasets": {
         "type": "array",
         "items": {
-          "$ref": "https://openethics.ai/schemas/oedp.dataset.schema.json"
+          "$ref": "https://openethics.ai/schema/oedp.dataset.schema.json"
         }
       }
     },
