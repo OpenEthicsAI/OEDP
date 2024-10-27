@@ -28,12 +28,6 @@
       "type": "array",
       "items": {}
     },
-    "tools": {
-      "type": "array",
-      "items": {
-        "$ref": "https://openethics.ai/schema/oedp.labeling_tool.schema.json"
-      }
-    },
     "contacts": {
       "type": "array",
       "items": {
@@ -62,6 +56,12 @@
             ]
           }
         }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "https://openethics.ai/schema/oedp.labeling_tool.schema.json"
       }
     }
   },

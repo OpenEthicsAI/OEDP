@@ -9,12 +9,6 @@
       "type": "string",
       "format": "uuid"
     },
-    "models": {
-      "type": "array",
-      "items": {
-        "$ref": "https://openethics.ai/schema/oedp.model.schema.json"
-      }
-    },
     "scope": {
       "type": "string"
     },
@@ -37,6 +31,12 @@
     "validUntil": {
       "type": "string",
       "format": "date-time"
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "$ref": "https://openethics.ai/schema/oedp.model.schema.json"
+      }
     }
   },
   "required": [

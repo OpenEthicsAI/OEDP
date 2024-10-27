@@ -12,9 +12,6 @@
     "datapoints": {
       "type": "number"
     },
-    "labeler": {
-      "$ref": "https://openethics.ai/schema/oedp.labeler.schema.json"
-    },
     "type": {
       "oneOf": [
         {
@@ -39,6 +36,9 @@
         }
       ],
       "type": "object"
+    },
+    "labeler": {
+      "$ref": "https://openethics.ai/schema/oedp.labeler.schema.json"
     },
     "tools": {
       "type": "array",
