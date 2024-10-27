@@ -1,8 +1,9 @@
 {
-  "$id": "https://openethics.ai/schemas/Labeling-Tool.json",
+  "$id": "https://openethics.ai/schemas/oedp.labeling_tool.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Labeling Tool",
+  "title": "OEDP Labeling Tool Schema",
   "type": "object",
+  "description": "Schema to describe the Labeling Tool used to annotated the Dataset",
   "properties": {
     "id": {
       "type": "string",
@@ -25,6 +26,5 @@
     "id",
     "name",
     "description"
-  ],
-  "description": "Description of the Labeling Tool"
+  ]
 }
