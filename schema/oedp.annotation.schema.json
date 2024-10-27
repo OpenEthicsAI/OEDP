@@ -42,6 +42,7 @@
     },
     "tools": {
       "type": "array",
+      "description": "Tools used for the model's data annotation",
       "items": {
         "$ref": "https://openethics.ai/schema/oedp.labeling_tool.schema.json"
       }
