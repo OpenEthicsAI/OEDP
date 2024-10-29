@@ -6,13 +6,16 @@
   "properties": {
     "id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description": "Unique ID for the annotation (formatted as a UUID)"
     },
     "datapoints": {
-      "type": "number"
+      "type": "number",
+      "description": "Number of data points annotated"
     },
     "labeler": {
-      "$ref": "./Labeler.json"
+      "$ref": "./Labeler.json",
+       "description": "A reference to the Labeler.json schema, specifying the entity responsible for the annotation"
     },
     "type": {
       "oneOf": [
@@ -37,10 +40,13 @@
           ]
         }
       ],
-      "type": "object"
+      "type": "object",
+      "description": "The type of annotation (internal, outsourced, crowdsourced, synthetic, data programming)"
+
     },
     "tools": {
       "type": "array",
+      "description": "An array of tools used for the labeling process, with references to Labeling-Tool.json",
       "items": {
         "$ref": "./Labeling-Tool.json"
       }
