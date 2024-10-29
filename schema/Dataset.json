@@ -6,20 +6,25 @@
   "properties": {
     "id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description":"Unique ID for the dataset"
     },
     "created": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description":"The date and time when the dataset was created, formatted as a date-time string"
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "description":"A description of the dataset's content and purpose"
     },
     "version": {
-      "type": "string"
+      "type": "string",
+      "description":"Version of the dataset"
     },
     "scope": {
-      "type": "string"
+      "type": "string",
+      "description":"Purpose or application of the dataset"
     },
     "source": {
       "type": "object",
@@ -33,13 +38,15 @@
       },
       "required": [
         "description"
-      ]
+      ],
+      "description": "Where the dataset comes from (including a description and URL)"
     },
     "labeling": {
       "type": "array",
       "items": {
         "$ref": "./Annotation.json"
-      }
+      },
+       "description": "An array of annotations linked to the dataset, each referencing Annotation.json"
     }
   },
   "required": [
