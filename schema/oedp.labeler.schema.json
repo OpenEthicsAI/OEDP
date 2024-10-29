@@ -1,8 +1,9 @@
 {
-  "$id": "https://openethics.ai/schemas/Labeler.json",
+  "$id": "https://openethics.ai/schema/oedp.labeler.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Labeler",
+  "title": "OEDP Dataset Labeler Schema",
   "type": "object",
+  "description": "Describes fields for the Dataset Labeler's profile",
   "properties": {
     "id": {
       "type": "string",
@@ -26,12 +27,6 @@
     "training": {
       "type": "array",
       "items": {}
-    },
-    "tools": {
-      "type": "array",
-      "items": {
-        "$ref": "./Labeling-Tool.json"
-      }
     },
     "contacts": {
       "type": "array",
@@ -62,12 +57,18 @@
           }
         }
       }
+    },
+    "tools": {
+      "type": "array",
+      "description": "Labeling tools that the labeler has experience with",
+      "items": {
+        "$ref": "https://openethics.ai/schema/oedp.labeling_tool.schema.json"
+      }
     }
   },
   "required": [
     "id",
     "created",
     "updated"
-  ],
-  "description": "Labeler's profile"
+  ]
 }

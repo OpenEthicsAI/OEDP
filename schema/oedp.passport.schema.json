@@ -1,19 +1,13 @@
 {
-  "$id": "https://openethics.ai/schemas/Open-Ethics-Data-Passport.json",
+  "$id": "https://openethics.ai/schema/oedp.passport.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Open Ethics Data Passport",
+  "title": "Open Ethics Data Passport Schema",
   "type": "object",
-  "description": "OEDP Model",
+  "description": "Describes fields in the Open Ethics Data Passport",
   "properties": {
     "id": {
       "type": "string",
       "format": "uuid"
-    },
-    "models": {
-      "type": "array",
-      "items": {
-        "$ref": "./Model.json"
-      }
     },
     "scope": {
       "type": "string"
@@ -37,6 +31,12 @@
     "validUntil": {
       "type": "string",
       "format": "date-time"
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "$ref": "https://openethics.ai/schema/oedp.model.schema.json"
+      }
     }
   },
   "required": [

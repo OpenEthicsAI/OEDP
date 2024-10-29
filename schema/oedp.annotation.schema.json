@@ -1,8 +1,9 @@
 {
-  "$id": "https://openethics.ai/schemas/Annotation.json",
+  "$id": "https://openethics.ai/schema/oedp.annotation.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Annotation",
+  "title": "OEDP Dataset Annotation Schema",
   "type": "object",
+  "description": "Describes fields for the Dataset Annotation Schema in the OEDP for each single Labeler and Annotation Tool used",
   "properties": {
     "id": {
       "type": "string",
@@ -10,9 +11,6 @@
     },
     "datapoints": {
       "type": "number"
-    },
-    "labeler": {
-      "$ref": "./Labeler.json"
     },
     "type": {
       "oneOf": [
@@ -39,10 +37,14 @@
       ],
       "type": "object"
     },
+    "labeler": {
+      "$ref": "https://openethics.ai/schema/oedp.labeler.schema.json"
+    },
     "tools": {
       "type": "array",
+      "description": "Tools used for the model's data annotation",
       "items": {
-        "$ref": "./Labeling-Tool.json"
+        "$ref": "https://openethics.ai/schema/oedp.labeling_tool.schema.json"
       }
     }
   },
@@ -51,6 +53,5 @@
     "datapoints",
     "labeler",
     "type"
-  ],
-  "description": "Annotation model for each single Labeler"
+  ]
 }

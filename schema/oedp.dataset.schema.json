@@ -1,8 +1,9 @@
 {
-  "$id": "https://openethics.ai/schemas/Dataset.json",
+  "$id": "https://openethics.ai/schema/oedp.dataset.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Dataset",
+  "title": "OEDP Training Dataset Schema",
   "type": "object",
+  "description": "Describes fields for the Dataset transparency in OEDP",
   "properties": {
     "id": {
       "type": "string",
@@ -38,13 +39,12 @@
     "labeling": {
       "type": "array",
       "items": {
-        "$ref": "./Annotation.json"
+        "$ref": "https://openethics.ai/schema/oedp.annotation.schema.json"
       }
     }
   },
   "required": [
     "id",
     "created"
-  ],
-  "description": "Dataset Model"
+  ]
 }

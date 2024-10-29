@@ -1,9 +1,10 @@
 
 {
-    "$id": "https://openethics.ai/schemas/Model.json",
+    "$id": "https://openethics.ai/schema/oedp.model.schema.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "title": "Model",
+    "title": "OEDP AI Model Schema",
     "type": "object",
+    "description": "Describes fields required for the AI Model transparency",
     "properties": {
       "id": {
         "type": "string",
@@ -51,13 +52,12 @@
       "datasets": {
         "type": "array",
         "items": {
-          "$ref": "./Dataset.json"
+          "$ref": "https://openethics.ai/schema/oedp.dataset.schema.json"
         }
       }
     },
     "required": [
       "id",
       "created"
-    ],
-    "description": "Model"
+    ]
   }
