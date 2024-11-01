@@ -7,29 +7,37 @@
   "properties": {
     "id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description": "Unique ID for the labeler"
+      
     },
     "created": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Profile creation date"
     },
     "updated": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "The last updated date and time of the labeler profile"
     },
     "name": {
-      "type": "string"
+      "type": "string",
+      "description": "Labeler's name"
     },
     "projects": {
       "type": "array",
+      "description":"List of projects the labeler has worked on",
       "items": {}
     },
     "training": {
       "type": "array",
+      "description": "Training sessions attended",
       "items": {}
     },
     "contacts": {
       "type": "array",
+      "description": "List of contacts for the labeler, specifying the type (email/phone), value, and access level (public/private)",
       "items": {
         "type": "object",
         "properties": {
