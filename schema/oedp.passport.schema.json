@@ -7,14 +7,17 @@
   "properties": {
     "id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description": "Unique ID for the ethics data passport"
     },
     "scope": {
-      "type": "string"
+      "type": "string",
+      "description": "Ethical focus of the passport"
     },
     "created": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "When the data passport was created"
     },
     "product": {
       "type": [
@@ -22,21 +25,26 @@
         "string"
       ],
       "format": "uuid",
-      "items": {}
+      "items": {},
+      "description": "Reference to the product associated with the data passport"
     },
     "updated": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description":"Last updated date and time of the data passport"
     },
     "validUntil": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Expiration date and time for the data passport"
+      
     },
     "models": {
       "type": "array",
       "items": {
         "$ref": "https://openethics.ai/schema/oedp.model.schema.json"
-      }
+      },
+      "description": "List of models covered by this passport"
     }
   },
   "required": [
