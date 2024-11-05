@@ -7,19 +7,24 @@
   "properties": {
     "id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description": "Unique ID for the labeling tool"
     },
     "name": {
-      "type": "string"
+      "type": "string",
+       "description": "Name of the tool used for labeling"
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "description": "Brief description of the labeling tool"
     },
     "url": {
-      "$ref": ""
+      "$ref": "",
+      "description": "URL for more information on the tool"
     },
     "version": {
-      "type": "string"
+      "type": "string",
+      "description": "Version of the labeling tool"
     }
   },
   "required": [
