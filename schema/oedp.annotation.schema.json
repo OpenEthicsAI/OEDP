@@ -7,10 +7,12 @@
   "properties": {
     "id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description":"Unique ID for the annotation(formatted as a UUID)"
     },
     "datapoints": {
-      "type": "number"
+      "type": "number",
+      "description":"Number of data points annotated "
     },
     "type": {
       "oneOf": [
@@ -35,10 +37,12 @@
           ]
         }
       ],
-      "type": "object"
+      "type": "object",
+      "description": "The type of annotation (internal, outsourced, crowdsourced, synthetic, data programming)"
     },
     "labeler": {
-      "$ref": "https://openethics.ai/schema/oedp.labeler.schema.json"
+      "$ref": "https://openethics.ai/schema/oedp.labeler.schema.json",
+      "description": "A reference to the Labeler.json schema, specifying the entity responsible for the annotation"
     },
     "tools": {
       "type": "array",
