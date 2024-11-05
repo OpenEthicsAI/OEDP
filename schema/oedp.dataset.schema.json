@@ -7,23 +7,29 @@
   "properties": {
     "id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description": "Unique ID for the dataset"
     },
     "created": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "When the dataset was created"
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "description": "Short summary of the dataset"
     },
     "version": {
-      "type": "string"
+      "type": "string",
+      "description": "Version of the dataset"
     },
     "scope": {
-      "type": "string"
+      "type": "string",
+      "description": "Purpose or application of the dataset"
     },
     "source": {
       "type": "object",
+      "description": "Where the dataset comes from",
       "properties": {
         "description": {
           "type": "string"
@@ -38,6 +44,7 @@
     },
     "labeling": {
       "type": "array",
+      "description": "List of annotations linked to the dataset, referencing `Annotation.json`",
       "items": {
         "$ref": "https://openethics.ai/schema/oedp.annotation.schema.json"
       }
