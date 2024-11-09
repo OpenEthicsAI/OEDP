@@ -12,7 +12,7 @@
     },
     "datapoints": {
       "type": "number",
-      "description":"Number of data points annotated "
+      "description":"Number of the data points annotated within a dataset using certain annotation approach"
     },
     "type": {
       "oneOf": [
