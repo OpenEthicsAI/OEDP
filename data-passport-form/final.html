@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Schema Form Generator</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .url-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .helper-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            color: red;
+            display: none;
+            margin-top: 10px;
+        }
+
+        #loadingIndicator {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .object-wrapper {
+            margin-left: 20px;
+            padding-left: 10px;
+            border-left: 2px solid #ddd;
+        }
+
+        .description {
+            font-size: 0.9em;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .required::after {
+            content: " *";
+            color: red;
+        }
+
+        .error {
+            color: red;
+            padding: 10px;
+            border: 1px solid red;
+            margin: 10px 0;
+        }
+
+        .submit-btn {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .download-section {
+            margin-top: 20px;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .submissions-container {
+            margin-top: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSON Schema Form Generator</h1>
+
+        <div class="url-input-container">
+            <input type="text" id="schemaUrl" placeholder="Enter schema URL">
+            <button onclick="fetchSchema()" class="submit-btn">Fetch Schema</button>
+            <span id="loadingIndicator">Loading...</span>
+        </div>
+
+        <div class="helper-text">
+            
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="input-container">
+            <textarea id="schemaInput" rows="10" placeholder="Or paste your JSON schema here"></textarea>
+            <button onclick="generateFormFromText()" class="submit-btn">Generate Form</button>
+        </div>
+
+        <div id="formContainer"></div>
+
+        <div id="downloadSection" class="download-section" style="display: none;">
+            <h3>Download Submissions</h3>
+            <button onclick="downloadJSON()" class="submit-btn">Download as JSON</button>
+            <button onclick="downloadCSV()" class="submit-btn">Download as CSV</button>
+
+            <div id="submissionsContainer" class="submissions-container">
+                <h4>Recent Submissions</h4>
+                <div id="submissionsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let submissions = [];
+
+        const labelerSchema = {
+            type: 'object',
+            properties: {
+                name: { type: 'string' },
+                type: { type: 'string' },
+                description: { type: 'string' }
+            }
+        };
+
+        const labelingToolSchema = {
+            type: 'object',
+            properties: {
+                name: { type: 'string' },
+                version: { type: 'string' },
+                description: { type: 'string' }
+            }
+        };
+
+        async function fetchSchema() {
+            const urlInput = document.getElementById('schemaUrl');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Reset error state
+            errorMessage.style.display = 'none';
+    
+            
+            if (!urlInput.value) {
+                showError('Please enter a URL');
+                return;
+            }
+            // Convert GitHub URL to raw URL if needed
+            let schemaUrl = urlInput.value;
+            if (schemaUrl.includes('github.com') && !schemaUrl.includes('raw.githubusercontent.com')) {
+                schemaUrl = schemaUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+                urlInput.value = schemaUrl;
+            }
+
+            
+            
+            loadingIndicator.style.display = 'inline';
+            errorMessage.style.display = 'none';
+            
+            try {
+                const response = await fetch(urlInput.value);
+                if (!response.ok) throw new Error('Failed to fetch schema');
+                
+                const schema = await response.json();
+                document.getElementById('schemaInput').value = JSON.stringify(schema, null, 2);
+                loadingIndicator.style.display = 'none';
+            } catch (error) {
+                showError('Error fetching schema: ' + error.message);
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        function generateFormFromText() {
+            const jsonText = document.getElementById('schemaInput').value;
+            const formContainer = document.getElementById('formContainer');
+            const downloadSection = document.getElementById('downloadSection');
+            
+            try {
+                const schema = JSON.parse(jsonText);
+                
+                // Clear previous content
+                formContainer.innerHTML = '';
+                
+                if (schema.title) {
+                    const titleElement = document.createElement('h2');
+                    titleElement.textContent = schema.title;
+                    formContainer.appendChild(titleElement);
+                }
+                
+                if (schema.description) {
+                    const descElement = document.createElement('div');
+                    descElement.className = 'description';
+                    descElement.textContent = schema.description;
+                    formContainer.appendChild(descElement);
+                }
+                
+                const form = generateForm(schema);
+                formContainer.appendChild(form);
+                
+                downloadSection.style.display = 'block';
+            } catch (error) {
+                formContainer.innerHTML = `<div class="error">Error parsing JSON: ${error.message}</div>`;
+            }
+        }
+
+        function generateForm(schema) {
+            const form = document.createElement('form');
+            form.onsubmit = handleSubmit;
+
+            if (schema.type === 'object' && schema.properties) {
+                Object.entries(schema.properties).forEach(([key, prop]) => {
+                    const formGroup = createFormGroup(key, prop, schema.required || []);
+                    form.appendChild(formGroup);
+                });
+            }
+
+            const submitBtn = document.createElement('button');
+            submitBtn.type = 'submit';
+            submitBtn.className = 'submit-btn';
+            submitBtn.textContent = 'Submit';
+            form.appendChild(submitBtn);
+
+            return form;
+        }
+
+        function createFormGroup(name, property, required) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'form-group';
+
+            const label = document.createElement('label');
+            label.textContent = property.title || name;
+            if (required.includes(name)) {
+                label.className = 'required';
+            }
+            wrapper.appendChild(label);
+
+            if (property.description) {
+                const description = document.createElement('div');
+                description.className = 'description';
+                description.textContent = property.description;
+                wrapper.appendChild(description);
+            }
+
+            let input;
+            
+            if (name === 'id') {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.pattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
+                input.placeholder = 'UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+            } else if (name === 'type') {
+                const typeWrapper = document.createElement('div');
+                
+                const typeSelect = document.createElement('select');
+                typeSelect.name = 'type.name';
+                ['internal', 'outsourced', 'crowdsourced', 'synthetic', 'dataProgramming'].forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    typeSelect.appendChild(option);
+                });
+                
+                const typeDesc = document.createElement('input');
+                typeDesc.type = 'text';
+                typeDesc.name = 'type.description';
+                typeDesc.placeholder = 'Type description (optional)';
+                
+                typeWrapper.appendChild(typeSelect);
+                typeWrapper.appendChild(typeDesc);
+                input = typeWrapper;
+            } else if (name === 'labeler') {
+                input = createSubForm(labelerSchema);
+            } else if (name === 'tools') {
+                input = createArrayForm(labelingToolSchema);
+            } else {
+                switch (property.type) {
+                    case 'string':
+                        if (property.enum) {
+                            input = document.createElement('select');
+                            property.enum.forEach(value => {
+                                const option = document.createElement('option');
+                                option.value = value;
+                                option.textContent = value;
+                                input.appendChild(option);
+                            });
+                        } else {
+                            input = document.createElement('input');
+                            input.type = 'text';
+                        }
+                        break;
+                    case 'number':
+                    case 'integer':
+                        input = document.createElement('input');
+                        input.type = 'number';
+                        if (property.minimum !== undefined) input.min = property.minimum;
+                        if (property.maximum !== undefined) input.max = property.maximum;
+                        break;
+                    case 'boolean':
+                        input = document.createElement('input');
+                        input.type = 'checkbox';
+                        break;
+                    default:
+                        input = document.createElement('input');
+                        input.type = 'text';
+                }
+            }
+
+            if (input.tagName !== 'DIV') {
+                input.id = name;
+                input.name = name;
+                if (required.includes(name)) {
+                    input.required = true;
+                }
+            }
+
+            wrapper.appendChild(input);
+            return wrapper;
+        }
+
+        function createSubForm(schema) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'object-wrapper';
+            
+            Object.entries(schema.properties).forEach(([key, prop]) => {
+                const formGroup = createFormGroup(
+                    `labeler.${key}`,
+                    prop,
+                    schema.required || []
+                );
+                wrapper.appendChild(formGroup);
+            });
+            
+            return wrapper;
+        }
+
+        function createArrayForm(itemSchema) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'object-wrapper';
+            
+            const addButton = document.createElement('button');
+            addButton.type = 'button';
+            addButton.textContent = 'Add Tool';
+            addButton.className = 'submit-btn';
+            addButton.onclick = () => {
+                const itemWrapper = createSubForm(itemSchema);
+                itemWrapper.dataset.index = wrapper.children.length - 1;
+                wrapper.insertBefore(itemWrapper, addButton);
+            };
+            
+            wrapper.appendChild(addButton);
+            return wrapper;
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const submission = Object.fromEntries(formData.entries());
+            
+            submissions.unshift(submission);
+            updateSubmissionsList();
+            event.target.reset();
+        }
+
+        function updateSubmissionsList() {
+            const submissionsList = document.getElementById('submissionsList');
+            submissionsList.innerHTML = submissions.map((sub, index) => `
+                <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd;">
+                    <h4>Submission ${submissions.length - index}</h4>
+                    <pre>${JSON.stringify(sub, null, 2)}</pre>
+                </div>
+            `).join('');
+        }
+
+        function downloadJSON() {
+            downloadFile(JSON.stringify(submissions, null, 2), 'submissions.json', 'application/json');
+        }
+
+        function downloadCSV() {
+            if (submissions.length === 0) return;
+            
+            const headers = Object.keys(submissions[0]);
+            const csv = [
+                headers.join(','),
+                ...submissions.map(sub => 
+                    headers.map(header => JSON.stringify(sub[header])).join(',')
+                )
+            ].join('\n');
+            
+            downloadFile(csv, 'submissions.csv', 'text/csv');
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
