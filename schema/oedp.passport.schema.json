@@ -1,5 +1,5 @@
 {
-  "$id": "https://openethics.ai/schema/oedp.passport.schema.json",
+  "$id": "https://openethics.ai/schema/oedp/oedp.passport.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Open Ethics Data Passport Schema",
   "type": "object",
@@ -42,7 +42,7 @@
     "models": {
       "type": "array",
       "items": {
-        "$ref": "https://openethics.ai/schema/oedp.model.schema.json"
+        "$ref": "https://openethics.ai/schema/oedp/oedp.model.schema.json"
       },
       "description": "List of models covered by this passport"
     }

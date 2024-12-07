@@ -1,5 +1,5 @@
 on: push
-name: 🚀 Deploy schema files to openethics.ai/schema/
+name: 🚀 Deploy schema files to openethics.ai/schema/oedp/
 jobs:
   web-deploy:
     name: 🎉 Deploy

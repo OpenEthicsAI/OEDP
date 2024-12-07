@@ -1,5 +1,5 @@
 {
-  "$id": "https://openethics.ai/schema/oedp.annotation.schema.json",
+  "$id": "https://openethics.ai/schema/oedp/oedp.annotation.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OEDP Dataset Annotation Schema",
   "type": "object",
@@ -41,14 +41,14 @@
       "description": "The type of annotation (internal, outsourced, crowdsourced, synthetic, data programming)"
     },
     "labeler": {
-      "$ref": "https://openethics.ai/schema/oedp.labeler.schema.json",
+      "$ref": "https://openethics.ai/schema/oedp/oedp.labeler.schema.json",
       "description": "A reference to the Labeler.json schema, specifying the entity responsible for the annotation"
     },
     "tools": {
       "type": "array",
       "description": "Tools used for the model's data annotation",
       "items": {
-        "$ref": "https://openethics.ai/schema/oedp.labeling_tool.schema.json"
+        "$ref": "https://openethics.ai/schema/oedp/oedp.labeling_tool.schema.json"
       }
     }
   },

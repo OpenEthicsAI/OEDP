@@ -1,5 +1,5 @@
 {
-  "$id": "https://openethics.ai/schema/oedp.labeler.schema.json",
+  "$id": "https://openethics.ai/schema/oedp/oedp.labeler.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OEDP Dataset Labeler Schema",
   "type": "object",
@@ -70,7 +70,7 @@
       "type": "array",
       "description": "Labeling tools that the labeler has experience with",
       "items": {
-        "$ref": "https://openethics.ai/schema/oedp.labeling_tool.schema.json"
+        "$ref": "https://openethics.ai/schema/oedp/oedp.labeling_tool.schema.json"
       }
     }
   },

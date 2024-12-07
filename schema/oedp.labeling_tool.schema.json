@@ -1,5 +1,5 @@
 {
-  "$id": "https://openethics.ai/schema/oedp.labeling_tool.schema.json",
+  "$id": "https://openethics.ai/schema/oedp/oedp.labeling_tool.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OEDP Labeling Tool Schema",
   "type": "object",
