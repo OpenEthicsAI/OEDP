@@ -39,7 +39,7 @@
 			"properties": {
 				"product": {
 					"title": "The product schema",
-					"description": "The information about the product",
+					"description": "The information about the digital product",
 					"type": "object",
 					"required": ["url"],
 					"properties": {
