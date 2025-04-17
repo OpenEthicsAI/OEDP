@@ -56,6 +56,19 @@
             border-left: 2px solid #ddd;
         }
 
+        .array-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .array-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 5px;
+        }
+
         .description {
             font-size: 0.9em;
             color: #666;
@@ -72,6 +85,12 @@
             padding: 10px;
             border: 1px solid red;
             margin: 10px 0;
+        }
+
+        .validation-error {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
         }
 
         .submit-btn {
@@ -105,6 +124,22 @@
             border-radius: 4px;
             margin-bottom: 10px;
         }
+
+        .helper-text {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .cors-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -118,7 +153,18 @@
         </div>
 
         <div class="helper-text">
-            
+            <p>Enter a JSON Schema URL or paste a schema below. Try these example URLs:</p>
+            <ul>
+                <li>https://raw.githubusercontent.com/OpenEthicsAI/OEDP/refs/heads/main/schema/oedp.passport.schema.json</li>
+            </ul>
+            <div class="cors-warning">
+                <strong>Note:</strong> Some URLs may be blocked by CORS policy. If you encounter CORS errors, you can:
+                <ol>
+                    <li>Use raw GitHub URLs (they work without CORS issues)</li>
+                    <li>Copy the schema and paste it in the text area below</li>
+                    <li>Use a CORS proxy by adding "https://cors-anywhere.herokuapp.com/" before your URL (requires requesting temporary access)</li>
+                </ol>
+            </div>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
@@ -144,24 +190,8 @@
 
     <script>
         let submissions = [];
-
-        const labelerSchema = {
-            type: 'object',
-            properties: {
-                name: { type: 'string' },
-                type: { type: 'string' },
-                description: { type: 'string' }
-            }
-        };
-
-        const labelingToolSchema = {
-            type: 'object',
-            properties: {
-                name: { type: 'string' },
-                version: { type: 'string' },
-                description: { type: 'string' }
-            }
-        };
+        let currentSchema = null;
+        let resolvedSchemas = {}; // Cache for resolved schemas
 
         async function fetchSchema() {
             const urlInput = document.getElementById('schemaUrl');
@@ -171,11 +201,11 @@
             // Reset error state
             errorMessage.style.display = 'none';
     
-            
             if (!urlInput.value) {
                 showError('Please enter a URL');
                 return;
             }
+
             // Convert GitHub URL to raw URL if needed
             let schemaUrl = urlInput.value;
             if (schemaUrl.includes('github.com') && !schemaUrl.includes('raw.githubusercontent.com')) {
@@ -183,17 +213,34 @@
                 urlInput.value = schemaUrl;
             }
 
-            
+            // Try with CORS proxy if needed
+            let useProxy = false;
+            if (schemaUrl.includes('openethics.ai') && !schemaUrl.includes('cors-anywhere')) {
+                useProxy = true;
+            }
             
             loadingIndicator.style.display = 'inline';
             errorMessage.style.display = 'none';
             
             try {
-                const response = await fetch(urlInput.value);
-                if (!response.ok) throw new Error('Failed to fetch schema');
-                
-                const schema = await response.json();
-                document.getElementById('schemaInput').value = JSON.stringify(schema, null, 2);
+                let fetchUrl = schemaUrl;
+                if (useProxy) {
+                    // Try first without proxy
+                    try {
+                        const response = await fetch(schemaUrl, { mode: 'cors' });
+                        if (!response.ok) throw new Error('Failed to fetch schema');
+                        const schema = await response.json();
+                        document.getElementById('schemaInput').value = JSON.stringify(schema, null, 2);
+                    } catch (error) {
+                        // If fails, suggest using a proxy
+                        showError('CORS error: Cannot access this URL directly. Try using a CORS proxy, a raw GitHub URL, or copy the schema manually.');
+                    }
+                } else {
+                    const response = await fetch(fetchUrl);
+                    if (!response.ok) throw new Error('Failed to fetch schema');
+                    const schema = await response.json();
+                    document.getElementById('schemaInput').value = JSON.stringify(schema, null, 2);
+                }
                 loadingIndicator.style.display = 'none';
             } catch (error) {
                 showError('Error fetching schema: ' + error.message);
@@ -201,13 +248,82 @@
             }
         }
 
-        function generateFormFromText() {
+        // Function to resolve references in the schema
+        async function resolveReferences(schema, baseSchema = null, basePath = '') {
+            if (!schema) return schema;
+            
+            // Use the root schema as base if not provided
+            baseSchema = baseSchema || schema;
+            
+            // Handle $ref
+            if (schema.$ref) {
+                // Check if we've already resolved this reference
+                if (resolvedSchemas[schema.$ref]) {
+                    return resolvedSchemas[schema.$ref];
+                }
+                
+                // Handle internal references
+                if (schema.$ref.startsWith('#/')) {
+                    const refPath = schema.$ref.substring(2).split('/');
+                    let reference = baseSchema;
+                    
+                    for (const segment of refPath) {
+                        if (reference) {
+                            reference = reference[segment];
+                        }
+                    }
+                    
+                    // Cache resolved reference
+                    resolvedSchemas[schema.$ref] = reference;
+                    
+                    // Recursively resolve references in the reference
+                    if (reference) {
+                        return await resolveReferences(reference, baseSchema, basePath);
+                    }
+                }
+                // Handle external references (not implemented in this basic version)
+                else {
+                    console.warn('External references not supported:', schema.$ref);
+                }
+            }
+            
+            // Deep copy to avoid modifying the original
+            const result = { ...schema };
+            
+            // Recursively resolve references in nested properties
+            if (schema.properties) {
+                result.properties = { ...schema.properties };
+                for (const [key, prop] of Object.entries(schema.properties)) {
+                    result.properties[key] = await resolveReferences(prop, baseSchema, `${basePath}/properties/${key}`);
+                }
+            }
+            
+            // Resolve references in array items
+            if (schema.items) {
+                result.items = await resolveReferences(schema.items, baseSchema, `${basePath}/items`);
+            }
+            
+            // Resolve references in oneOf, anyOf, allOf
+            ['oneOf', 'anyOf', 'allOf'].forEach(keyword => {
+                if (schema[keyword] && Array.isArray(schema[keyword])) {
+                    result[keyword] = [...schema[keyword]];
+                    for (let i = 0; i < schema[keyword].length; i++) {
+                        result[keyword][i] = resolveReferences(schema[keyword][i], baseSchema, `${basePath}/${keyword}/${i}`);
+                    }
+                }
+            });
+            
+            return result;
+        }
+
+        async function generateFormFromText() {
             const jsonText = document.getElementById('schemaInput').value;
             const formContainer = document.getElementById('formContainer');
             const downloadSection = document.getElementById('downloadSection');
             
             try {
                 const schema = JSON.parse(jsonText);
+                currentSchema = schema;
                 
                 // Clear previous content
                 formContainer.innerHTML = '';
@@ -225,7 +341,11 @@
                     formContainer.appendChild(descElement);
                 }
                 
-                const form = generateForm(schema);
+                // Resolve all references
+                resolvedSchemas = {}; // Reset cache
+                const resolvedSchema = await resolveReferences(schema);
+                
+                const form = generateForm(resolvedSchema);
                 formContainer.appendChild(form);
                 
                 downloadSection.style.display = 'block';
@@ -236,6 +356,7 @@
 
         function generateForm(schema) {
             const form = document.createElement('form');
+            form.id = 'schemaForm';
             form.onsubmit = handleSubmit;
 
             if (schema.type === 'object' && schema.properties) {
@@ -257,6 +378,7 @@
         function createFormGroup(name, property, required) {
             const wrapper = document.createElement('div');
             wrapper.className = 'form-group';
+            wrapper.dataset.field = name;
 
             const label = document.createElement('label');
             label.textContent = property.title || name;
@@ -274,16 +396,19 @@
 
             let input;
             
+            // Handle special cases for specific field names
             if (name === 'id') {
-                input = document.createElement('input');
-                input.type = 'text';
-                input.pattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
-                input.placeholder = 'UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
-            } else if (name === 'type') {
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.pattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
+                    input.placeholder = 'UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+                }
+             else if (name === 'type') {
                 const typeWrapper = document.createElement('div');
                 
                 const typeSelect = document.createElement('select');
                 typeSelect.name = 'type.name';
+                typeSelect.id = 'type.name';
                 ['internal', 'outsourced', 'crowdsourced', 'synthetic', 'dataProgramming'].forEach(value => {
                     const option = document.createElement('option');
                     option.value = value;
@@ -294,20 +419,210 @@
                 const typeDesc = document.createElement('input');
                 typeDesc.type = 'text';
                 typeDesc.name = 'type.description';
+                typeDesc.id = 'type.description';
                 typeDesc.placeholder = 'Type description (optional)';
                 
                 typeWrapper.appendChild(typeSelect);
                 typeWrapper.appendChild(typeDesc);
-                input = typeWrapper;
+                
+                wrapper.appendChild(typeWrapper);
+                return wrapper;
             } else if (name === 'labeler') {
-                input = createSubForm(labelerSchema);
+                const labelerWrapper = document.createElement('div');
+                labelerWrapper.className = 'object-wrapper';
+                
+                // Create fields for labeler properties based on the labelerSchema
+                const labelerSchema = {
+                    type: 'object',
+                    properties: {
+                        name: { type: 'string' },
+                        type: { type: 'string' },
+                        description: { type: 'string' }
+                    }
+                };
+                
+                Object.entries(labelerSchema.properties).forEach(([key, prop]) => {
+                    const formGroup = createFormGroup(
+                        `labeler.${key}`,
+                        prop,
+                        labelerSchema.required || []
+                    );
+                    labelerWrapper.appendChild(formGroup);
+                });
+                
+                wrapper.appendChild(labelerWrapper);
+                return wrapper;
             } else if (name === 'tools') {
-                input = createArrayForm(labelingToolSchema);
+                const toolsWrapper = document.createElement('div');
+                toolsWrapper.className = 'object-wrapper';
+                
+                // Create container for tools items
+                const itemsContainer = document.createElement('div');
+                itemsContainer.id = 'tools-items';
+                toolsWrapper.appendChild(itemsContainer);
+                
+                // Add button to add a new tool
+                const addButton = document.createElement('button');
+                addButton.type = 'button';
+                addButton.textContent = 'Add Tool';
+                addButton.className = 'submit-btn';
+                addButton.onclick = () => {
+                    const toolSchema = {
+                        type: 'object',
+                        properties: {
+                            name: { type: 'string' },
+                            version: { type: 'string' },
+                            description: { type: 'string' }
+                        }
+                    };
+                    
+                    const index = itemsContainer.children.length;
+                    const toolWrapper = document.createElement('div');
+                    toolWrapper.className = 'array-item';
+                    
+                    Object.entries(toolSchema.properties).forEach(([key, prop]) => {
+                        const formGroup = createFormGroup(
+                            `tools[${index}].${key}`,
+                            prop,
+                            toolSchema.required || []
+                        );
+                        toolWrapper.appendChild(formGroup);
+                    });
+                    
+                    // Add remove button
+                    const removeButton = document.createElement('button');
+                    removeButton.type = 'button';
+                    removeButton.textContent = 'Remove';
+                    removeButton.className = 'submit-btn';
+                    removeButton.onclick = () => {
+                        toolWrapper.remove();
+                    };
+                    
+                    const controls = document.createElement('div');
+                    controls.className = 'array-controls';
+                    controls.appendChild(removeButton);
+                    toolWrapper.appendChild(controls);
+                    
+                    itemsContainer.appendChild(toolWrapper);
+                };
+                
+                toolsWrapper.appendChild(addButton);
+                
+                wrapper.appendChild(toolsWrapper);
+                return wrapper;
+            } else if (property.type === 'object' && property.properties) {
+                input = document.createElement('div');
+                input.className = 'object-wrapper';
+                
+                Object.entries(property.properties).forEach(([key, prop]) => {
+                    const subGroup = createFormGroup(
+                        `${name}.${key}`,
+                        prop,
+                        property.required || []
+                    );
+                    input.appendChild(subGroup);
+                });
+            } else if (property.type === 'array') {
+                input = createArrayInput(name, property);
             } else {
+                input = createBasicInput(name, property);
+            }
+
+            if (input && input.tagName !== 'DIV') {
+                input.id = name;
+                input.name = name;
+                if (required.includes(name)) {
+                    input.required = true;
+                }
+                
+                // Add validation attributes
+                if (property.pattern) {
+                    input.pattern = property.pattern;
+                }
+                if (property.minLength) {
+                    input.minLength = property.minLength;
+                }
+                if (property.maxLength) {
+                    input.maxLength = property.maxLength;
+                }
+                if (property.minimum !== undefined) {
+                    input.min = property.minimum;
+                }
+                if (property.maximum !== undefined) {
+                    input.max = property.maximum;
+                }
+                
+                // Add validation message container
+                const validationMsg = document.createElement('div');
+                validationMsg.className = 'validation-error';
+                validationMsg.id = `${name}-error`;
+                validationMsg.style.display = 'none';
+                
+                // Add input event for validation
+                input.addEventListener('input', () => validateField(input, property, validationMsg));
+                
+                wrapper.appendChild(input);
+                wrapper.appendChild(validationMsg);
+            } else if (input) {
+                wrapper.appendChild(input);
+            }
+            
+            return wrapper;
+        }
+
+        function createBasicInput(name, property) {
+            let input;
+            
+            // Handle specific format types
+            if (property.format === 'date-time') {
+                input = document.createElement('input');
+                input.type = 'datetime-local';
+            } else if (property.format === 'date') {
+                input = document.createElement('input');
+                input.type = 'date';
+            } else if (property.format === 'time') {
+                input = document.createElement('input');
+                input.type = 'time';
+            } else if (property.format === 'email') {
+                input = document.createElement('input');
+                input.type = 'email';
+            } else if (property.format === 'uri') {
+                input = document.createElement('input');
+                input.type = 'url';
+            } else if (name === 'id' && (property.format === 'uuid' || property.pattern)) {
+                const inputWrapper = document.createElement('div');
+                inputWrapper.style.display = 'flex';
+                inputWrapper.style.gap = '10px';
+                
+                input = document.createElement('input');
+                input.type = 'text';
+                input.pattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
+                input.placeholder = 'UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+                input.style.flex = '1';
+                
+                const generateBtn = document.createElement('button');
+                generateBtn.type = 'button';
+                generateBtn.textContent = 'Generate UUID';
+                generateBtn.className = 'submit-btn generate-uuid';
+                generateBtn.dataset.targetField = name;
+                
+                inputWrapper.appendChild(input);
+                inputWrapper.appendChild(generateBtn);
+                
+                return inputWrapper;
+            } else {
+                // Handle basic types
                 switch (property.type) {
                     case 'string':
                         if (property.enum) {
                             input = document.createElement('select');
+                            if (!property.required) {
+                                // Add empty option for optional fields
+                                const emptyOption = document.createElement('option');
+                                emptyOption.value = '';
+                                emptyOption.textContent = '-- Select --';
+                                input.appendChild(emptyOption);
+                            }
                             property.enum.forEach(value => {
                                 const option = document.createElement('option');
                                 option.value = value;
@@ -335,58 +650,294 @@
                         input.type = 'text';
                 }
             }
-
-            if (input.tagName !== 'DIV') {
-                input.id = name;
-                input.name = name;
-                if (required.includes(name)) {
-                    input.required = true;
-                }
-            }
-
-            wrapper.appendChild(input);
-            return wrapper;
+            
+            return input;
         }
 
-        function createSubForm(schema) {
+        function createArrayInput(name, property) {
             const wrapper = document.createElement('div');
-            wrapper.className = 'object-wrapper';
+            wrapper.className = 'array-wrapper';
+            wrapper.dataset.arrayName = name;
             
-            Object.entries(schema.properties).forEach(([key, prop]) => {
-                const formGroup = createFormGroup(
-                    `labeler.${key}`,
-                    prop,
-                    schema.required || []
-                );
-                wrapper.appendChild(formGroup);
-            });
+            // Create container for array items
+            const itemsContainer = document.createElement('div');
+            itemsContainer.className = 'array-items';
+            itemsContainer.id = `${name}-items`;
+            wrapper.appendChild(itemsContainer);
             
-            return wrapper;
-        }
-
-        function createArrayForm(itemSchema) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'object-wrapper';
-            
+            // Add button to add a new item
             const addButton = document.createElement('button');
             addButton.type = 'button';
-            addButton.textContent = 'Add Tool';
+            addButton.textContent = `Add ${property.title || 'Item'}`;
             addButton.className = 'submit-btn';
             addButton.onclick = () => {
-                const itemWrapper = createSubForm(itemSchema);
-                itemWrapper.dataset.index = wrapper.children.length - 1;
-                wrapper.insertBefore(itemWrapper, addButton);
+                const newItem = createArrayItemElement(name, property.items, itemsContainer.children.length);
+                itemsContainer.appendChild(newItem);
             };
             
             wrapper.appendChild(addButton);
+            
+            // Add at least one item if the array is required
+            if (property.minItems && property.minItems > 0) {
+                for (let i = 0; i < property.minItems; i++) {
+                    const newItem = createArrayItemElement(name, property.items, i);
+                    itemsContainer.appendChild(newItem);
+                }
+            } else {
+                // Add one empty item by default
+                const newItem = createArrayItemElement(name, property.items, 0);
+                itemsContainer.appendChild(newItem);
+            }
+            
             return wrapper;
+        }
+
+        function createArrayItemElement(arrayName, itemSchema, index) {
+            const itemWrapper = document.createElement('div');
+            itemWrapper.className = 'array-item';
+            itemWrapper.dataset.index = index;
+            
+            // Create form elements based on the item schema
+            if (itemSchema.type === 'object' && itemSchema.properties) {
+                Object.entries(itemSchema.properties).forEach(([key, prop]) => {
+                    const formGroup = createFormGroup(
+                        `${arrayName}[${index}].${key}`,
+                        prop,
+                        itemSchema.required || []
+                    );
+                    itemWrapper.appendChild(formGroup);
+                });
+            } else {
+                // For simple array items
+                const input = createBasicInput(`${arrayName}[${index}]`, itemSchema);
+                input.id = `${arrayName}[${index}]`;
+                input.name = `${arrayName}[${index}]`;
+                itemWrapper.appendChild(input);
+            }
+            
+            // Add remove button
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.textContent = 'Remove';
+            removeButton.className = 'submit-btn';
+            removeButton.onclick = () => {
+                itemWrapper.remove();
+                // Reindex remaining items
+                const container = document.getElementById(`${arrayName}-items`);
+                Array.from(container.children).forEach((child, idx) => {
+                    child.dataset.index = idx;
+                    updateArrayItemIndices(child, arrayName, idx);
+                });
+            };
+            
+            const controls = document.createElement('div');
+            controls.className = 'array-controls';
+            controls.appendChild(removeButton);
+            
+            itemWrapper.appendChild(controls);
+            
+            return itemWrapper;
+        }
+
+        function updateArrayItemIndices(itemElement, arrayName, newIndex) {
+            // Update input names and ids
+            const inputs = itemElement.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                const oldName = input.name;
+                const newName = oldName.replace(/\[\d+\]/, `[${newIndex}]`);
+                input.name = newName;
+                input.id = newName;
+            });
+            
+            // Update labels
+            const labels = itemElement.querySelectorAll('label');
+            labels.forEach(label => {
+                const forAttr = label.getAttribute('for');
+                if (forAttr) {
+                    const newFor = forAttr.replace(/\[\d+\]/, `[${newIndex}]`);
+                    label.setAttribute('for', newFor);
+                }
+            });
+        }
+
+        function validateField(input, schema, errorElement) {
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Check required
+            if (input.required && !input.value) {
+                isValid = false;
+                errorMessage = 'This field is required';
+            }
+            
+            // Check pattern
+            else if (schema.pattern && input.value) {
+                const regex = new RegExp(schema.pattern);
+                if (!regex.test(input.value)) {
+                    isValid = false;
+                    errorMessage = schema.patternError || 'Invalid format';
+                }
+            }
+            
+            // Check string format
+            else if (schema.type === 'string' && schema.format && input.value) {
+                if (schema.format === 'date-time') {
+                    const date = new Date(input.value);
+                    if (isNaN(date.getTime())) {
+                        isValid = false;
+                        errorMessage = 'Invalid date and time format';
+                    }
+                } else if (schema.format === 'email') {
+                    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    if (!emailRegex.test(input.value)) {
+                        isValid = false;
+                        errorMessage = 'Invalid email format';
+                    }
+                } else if (schema.format === 'uri') {
+                    try {
+                        new URL(input.value);
+                    } catch (e) {
+                        isValid = false;
+                        errorMessage = 'Invalid URL format';
+                    }
+                }
+            }
+            
+            // Check min/max length for strings
+            else if (schema.type === 'string' && input.value) {
+                if (schema.minLength && input.value.length < schema.minLength) {
+                    isValid = false;
+                    errorMessage = `Minimum length is ${schema.minLength} characters`;
+                } else if (schema.maxLength && input.value.length > schema.maxLength) {
+                    isValid = false;
+                    errorMessage = `Maximum length is ${schema.maxLength} characters`;
+                }
+            }
+            
+            // Check min/max for numbers
+            else if ((schema.type === 'number' || schema.type === 'integer') && input.value) {
+                const numValue = parseFloat(input.value);
+                if (schema.minimum !== undefined && numValue < schema.minimum) {
+                    isValid = false;
+                    errorMessage = `Minimum value is ${schema.minimum}`;
+                } else if (schema.maximum !== undefined && numValue > schema.maximum) {
+                    isValid = false;
+                    errorMessage = `Maximum value is ${schema.maximum}`;
+                }
+            }
+            
+            // Display error message if invalid
+            if (!isValid) {
+                errorElement.textContent = errorMessage;
+                errorElement.style.display = 'block';
+                input.setCustomValidity(errorMessage);
+            } else {
+                errorElement.style.display = 'none';
+                input.setCustomValidity('');
+            }
+            
+            return isValid;
+        }
+
+        function validateForm() {
+            const form = document.getElementById('schemaForm');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                const errorElement = document.getElementById(`${input.name}-error`);
+                if (errorElement) {
+                    // Find the schema for this field
+                    const fieldPath = input.name.split('.');
+                    let schema = currentSchema;
+                    
+                    // Navigate to the correct schema object
+                    for (const part of fieldPath) {
+                        if (schema && schema.properties && schema.properties[part]) {
+                            schema = schema.properties[part];
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    if (schema) {
+                        const fieldValid = validateField(input, schema, errorElement);
+                        isValid = isValid && fieldValid;
+                    }
+                }
+            });
+            
+            return isValid;
+        }
+
+        function processFormData(form) {
+            const formData = new FormData(form);
+            const result = {};
+            
+            // Process each form field
+            for (const [key, value] of formData.entries()) {
+                if (key.includes('[') && key.includes(']')) {
+                    // Handle array items
+                    const matches = key.match(/(.+?)\[(\d+)\](?:\.(.+))?/);
+                    if (matches) {
+                        const [, arrayName, index, property] = matches;
+                        
+                        // Initialize array if it doesn't exist
+                        if (!result[arrayName]) {
+                            result[arrayName] = [];
+                        }
+                        
+                        // Initialize array item if it doesn't exist
+                        if (!result[arrayName][index]) {
+                            result[arrayName][index] = {};
+                        }
+                        
+                        if (property) {
+                            // For object properties in arrays
+                            result[arrayName][index][property] = value;
+                        } else {
+                            // For simple array items
+                            result[arrayName][index] = value;
+                        }
+                    }
+                } else if (key.includes('.')) {
+                    // Handle nested objects
+                    const parts = key.split('.');
+                    let current = result;
+                    
+                    for (let i = 0; i < parts.length - 1; i++) {
+                        const part = parts[i];
+                        current[part] = current[part] || {};
+                        current = current[part];
+                    }
+                    
+                    current[parts[parts.length - 1]] = value;
+                } else {
+                    // Handle regular fields
+                    result[key] = value;
+                }
+            }
+            
+            // Convert arrays from objects with numeric keys to real arrays
+            for (const key in result) {
+                if (Array.isArray(result[key])) {
+                    result[key] = result[key].filter(item => item !== undefined);
+                }
+            }
+            
+            return result;
         }
 
         function handleSubmit(event) {
             event.preventDefault();
-            const formData = new FormData(event.target);
-            const submission = Object.fromEntries(formData.entries());
             
+            // Validate form
+            if (!validateForm()) {
+                showError('Please fix the validation errors before submitting');
+                return;
+            }
+            
+            const submission = processFormData(event.target);
             submissions.unshift(submission);
             updateSubmissionsList();
             event.target.reset();
@@ -409,15 +960,50 @@
         function downloadCSV() {
             if (submissions.length === 0) return;
             
-            const headers = Object.keys(submissions[0]);
+            // Flatten all submissions to get all possible headers
+            const headers = new Set();
+            submissions.forEach(sub => {
+                flattenObject(sub).forEach(key => headers.add(key));
+            });
+            
+            const headerArray = Array.from(headers);
+            
             const csv = [
-                headers.join(','),
-                ...submissions.map(sub => 
-                    headers.map(header => JSON.stringify(sub[header])).join(',')
-                )
+                headerArray.join(','),
+                ...submissions.map(sub => {
+                    const flatSub = flattenObject(sub);
+                    return headerArray.map(header => {
+                        const value = flatSub.get(header) || '';
+                        // Ensure proper CSV escaping
+                        return JSON.stringify(String(value));
+                    }).join(',');
+                })
             ].join('\n');
             
             downloadFile(csv, 'submissions.csv', 'text/csv');
+        }
+
+        function flattenObject(obj, prefix = '', result = new Map()) {
+            for (const key in obj) {
+                const value = obj[key];
+                const newKey = prefix ? `${prefix}.${key}` : key;
+                
+                if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                    flattenObject(value, newKey, result);
+                } else if (Array.isArray(value)) {
+                    value.forEach((item, index) => {
+                        if (typeof item === 'object' && item !== null) {
+                            flattenObject(item, `${newKey}[${index}]`, result);
+                        } else {
+                            result.set(`${newKey}[${index}]`, item);
+                        }
+                    });
+                } else {
+                    result.set(newKey, value);
+                }
+            }
+            
+            return result;
         }
 
         function downloadFile(content, filename, type) {
@@ -437,6 +1023,12 @@
             errorMessage.textContent = message;
             errorMessage.style.display = 'block';
         }
+
+        // Generate a UUID v4 function for the id field
+        
+
+        // Helper function to add a "Generate UUID" button next to ID fields
+     
     </script>
 </body>
 </html>
